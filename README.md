@@ -19,22 +19,28 @@ This script allows you to backfill WakaTime heartbeats using VS Code's Local His
 
 ## Usage
 
-1.  **Configure limits**: Open `backfill_wakatime.py` and set `START_TIME_STR` and `END_TIME_STR` to your desired window.
-2.  **Dry Run**: Run the script without arguments to see how many heartbeats would be sent.
+1.  **Dry Run** (Default):
     ```bash
     python backfill_wakatime.py
     ```
-3.  **Execute**: Run with `--execute` to actually send the data.
+
+2.  **Custom Configuration**:
+    You can specify the history directory and time window via arguments:
+    ```bash
+    python backfill_wakatime.py \
+        --history-dir "/path/to/history" \
+        --start "Dec 10 2025 6:00 pm MST" \
+        --end "Dec 11 2025 8:00 pm MST"
+    ```
+
+3.  **Execute**: Add `--execute` to actually send the data.
     ```bash
     python backfill_wakatime.py --execute
     ```
 
-## Configuration
+## Arguments
 
-modify the `HISTORY_DIR`, `START_TIME_STR`, and `END_TIME_STR` variables at the top of the script.
-
-```python
-HISTORY_DIR = "/home/steven/.antigravity-server/data/User/History"
-START_TIME_STR = "Dec 10 2025 5:58 pm MST"
-END_TIME_STR = "Dec 11 2025 7:58 pm MST"
-```
+- `--history-dir`: Path to VS Code Local History directory (default: `~/.antigravity-server/data/User/History`)
+- `--start`: Start time for backfill (default: "Dec 10 2025 5:58 pm MST")
+- `--end`: End time for backfill (default: "Dec 11 2025 7:58 pm MST")
+- `--execute`: Flag to send data to WakaTime API. If omitted, runs in dry-run mode.

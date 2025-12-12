@@ -8,10 +8,12 @@ from urllib.parse import unquote, urlparse
 from dateutil import parser
 from dateutil import tz
 
-# Configuration
-HISTORY_DIR = "/home/steven/.antigravity-server/data/User/History"
-START_TIME_STR = "Dec 10 2025 5:58 pm MST"
-END_TIME_STR = "Dec 11 2025 7:58 pm MST"
+import argparse
+
+# Configuration defaults
+DEFAULT_HISTORY_DIR = "/home/steven/.antigravity-server/data/User/History"
+DEFAULT_START_TIME = "Dec 10 2025 5:58 pm MST"
+DEFAULT_END_TIME = "Dec 11 2025 7:58 pm MST"
 
 # MST is UTC-7.
 TZINFOS = {"MST": tz.gettz("US/Mountain"), "MDT": tz.gettz("US/Mountain")}
@@ -43,15 +45,52 @@ def parse_vscode_uri(uri):
         return None
 
 
-def main(dry_run=True):
+def main():
+    parser_args = argparse.ArgumentParser(
+        description="Backfill WakaTime history from VS Code Local History."
+    )
+    parser_args.add_argument(
+        "--history-dir",
+        default=DEFAULT_HISTORY_DIR,
+        help="Path to VS Code Local History directory",
+    )
+    parser_args.add_argument(
+        "--start",
+        default=DEFAULT_START_TIME,
+        help="Start time (e.g. 'Dec 10 2025 5:58 pm MST')",
+    )
+    parser_args.add_argument(
+        "--end",
+        default=DEFAULT_END_TIME,
+        help="End time (e.g. 'Dec 11 2025 7:58 pm MST')",
+    )
+    parser_args.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute the backfill (send data to WakaTime). Default is dry-run.",
+    )
+    args = parser_args.parse_args()
+
+    dry_run = not args.execute
+
     print(f"Starting WakaTime backfill (Dry Run: {dry_run})")
-    start_ts = get_timestamp(START_TIME_STR)
-    end_ts = get_timestamp(END_TIME_STR)
-    print(f"Time window: {START_TIME_STR} ({start_ts}) to {END_TIME_STR} ({end_ts})")
+    try:
+        start_ts = get_timestamp(args.start)
+        end_ts = get_timestamp(args.end)
+    except Exception as e:
+        print(f"Error parsing dates: {e}")
+        sys.exit(1)
+
+    print(f"Time window: {args.start} ({start_ts}) to {args.end} ({end_ts})")
+    print(f"History Directory: {args.history_dir}")
 
     heartbeats = []
 
-    for root, dirs, files in os.walk(HISTORY_DIR):
+    if not os.path.exists(args.history_dir):
+        print(f"Error: History directory not found: {args.history_dir}")
+        sys.exit(1)
+
+    for root, dirs, files in os.walk(args.history_dir):
         if "entries.json" in files:
             entry_path = os.path.join(root, "entries.json")
             try:
@@ -100,6 +139,7 @@ def main(dry_run=True):
         print("Dry run complete. No data sent.")
         for i, hb in enumerate(unique_heartbeats[:5]):
             print(f"Sample {i + 1}: {hb}")
+        print("\nTo actually send data, run with --execute")
         return
 
     # Send data
@@ -144,8 +184,4 @@ def main(dry_run=True):
 
 
 if __name__ == "__main__":
-    if "--execute" in sys.argv:
-        main(dry_run=False)
-    else:
-        main(dry_run=True)
-        print("\nTo actually send data, run with --execute")
+    main()
