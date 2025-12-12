@@ -14,8 +14,28 @@ This script allows you to backfill WakaTime heartbeats using VS Code's Local His
 ## Prerequisites
 
 - Python 3
-- `wakatime-cli` (usually installed via the VS Code extension or `pip install wakatime`)
-- `python-dateutil` library
+- `wakatime`
+- `python-dateutil`
+
+## Installation
+
+You can install dependencies using `pip` with `venv` or `uv`.
+
+### Using venv (Standard)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Using uv (Fast)
+
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
 
 ## Usage
 
